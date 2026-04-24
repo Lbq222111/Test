@@ -216,6 +216,26 @@ button {
   filter: drop-shadow(0 24px 72px rgba(0, 0, 0, 0.58)) saturate(1.06) contrast(1.04);
 }
 
+.sprite[data-expression="closed"] {
+  filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.5)) brightness(0.99) saturate(0.96);
+}
+
+.sprite[data-expression="closedSmile"] {
+  filter: drop-shadow(0 22px 64px rgba(0, 0, 0, 0.5)) brightness(1.02) saturate(1.04);
+}
+
+.sprite[data-expression="openSmile"] {
+  filter: drop-shadow(0 24px 70px rgba(0, 0, 0, 0.56)) brightness(1.03) saturate(1.06);
+}
+
+.sprite[data-expression="disgust"] {
+  filter: drop-shadow(0 24px 72px rgba(0, 0, 0, 0.6)) brightness(0.97) saturate(0.92) contrast(1.05);
+}
+
+.sprite[data-expression="smirk"] {
+  filter: drop-shadow(0 24px 72px rgba(0, 0, 0, 0.58)) brightness(1.01) saturate(1.02) contrast(1.08);
+}
+
 .panel {
   border: 1px solid var(--line);
   background: var(--panel);

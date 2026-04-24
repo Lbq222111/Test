@@ -17,6 +17,14 @@ const assets = {
   },
 };
 
+Object.assign(assets.sprites, {
+  closed: asset("\u7acb\u7ed8/\u95ed\u773c.png"),
+  closedSmile: asset("\u7acb\u7ed8/\u95ed\u773c\u7b11.png"),
+  openSmile: asset("\u7acb\u7ed8/\u7741\u773c\u7b11.png"),
+  disgust: asset("\u7acb\u7ed8/\u538c\u6076\u6000\u7591.png"),
+  smirk: asset("\u7acb\u7ed8/\u751f\u6c14\u7684\u7b11or\u8f7b\u8511.png"),
+});
+
 const uiCopy = {
   zh: {
     htmlLang: "zh-CN",
@@ -110,6 +118,7 @@ const localizedScenes = {
     },
     thought_normal: {
       speaker: "Nock",
+      sprite: "closed",
       text: (state) => (
         state.loopCount === 0 ? "(...That's normal.)" : "(I know what happens next.)"
       ),
@@ -126,6 +135,7 @@ const localizedScenes = {
     },
     thought_wrong: {
       speaker: "Nock",
+      sprite: "disgust",
       text: "(...No.)\n(Didn't I already knock just now?)",
     },
     hall_watch: {
@@ -133,6 +143,7 @@ const localizedScenes = {
     },
     thought_watch: {
       speaker: "Nock",
+      sprite: "disgust",
       text: "(Something was watching me just now.)",
     },
     rush_knock: {
@@ -222,6 +233,7 @@ const localizedScenes = {
     },
     realize_test: {
       speaker: "Nock",
+      sprite: "disgust",
       text: "(...A test?)\n(So everything I just did...)\n(Even leaving was just part of the flow.)",
     },
     system_reply: {
@@ -232,9 +244,11 @@ const localizedScenes = {
     },
     acceptance_2: {
       speaker: "Nock",
+      sprite: "openSmile",
       text: "(Then let's continue.)\n(The door already knows I'll come back.)",
     },
     still_1: {
+      sprite: "closed",
       text: "She does not raise her hand again.\nShe does not turn away, either.\nShe simply lets her hand fall and remains in front of the door.",
     },
     still_2: {
@@ -242,6 +256,7 @@ const localizedScenes = {
     },
     still_3: {
       speaker: "Nock",
+      sprite: "closedSmile",
       text: "(So refusing it is a choice too.)",
     },
   },
@@ -354,7 +369,7 @@ const scenes = {
     speaker: "诺克",
     mode: "thought",
     background: "door",
-    sprite: "normal",
+    sprite: "closed",
     text: (state) => (
       state.loopCount === 0 ? "（这很正常。）" : "（我知道接下来会发生什么。）"
     ),
@@ -393,7 +408,7 @@ const scenes = {
     speaker: "诺克",
     mode: "thought",
     background: "door",
-    sprite: "angry",
+    sprite: "disgust",
     effect: "sprite",
     sfx: "stinger",
     text: "（不对。）\n（我刚才，是不是已经敲过了？）",
@@ -686,6 +701,27 @@ const scenes = {
   },
 };
 
+const expressionOverrides = {
+  thought_normal: "closed",
+  thought_wrong: "disgust",
+  thought_watch: "disgust",
+  realize_test: "disgust",
+  acceptance: "openSmile",
+  acceptance_2: "smirk",
+  still_1: "closed",
+  still_3: "closedSmile",
+};
+
+for (const [sceneId, sprite] of Object.entries(expressionOverrides)) {
+  if (localizedScenes.en?.[sceneId]) {
+    localizedScenes.en[sceneId].sprite = sprite;
+  }
+
+  if (scenes[sceneId]) {
+    scenes[sceneId].sprite = sprite;
+  }
+}
+
 const ui = {
   background: document.getElementById("background"),
   flash: document.getElementById("flash"),
@@ -749,6 +785,8 @@ const state = {
   advanceHintKey: "advanceContinue",
 };
 
+const spriteLoadState = new Map();
+
 const typingSpeed = 36;
 
 function formatOrdinal(value) {
@@ -773,6 +811,28 @@ function formatOrdinal(value) {
 function getLocaleCopy() {
   return uiCopy[state.locale] || uiCopy.zh;
 }
+
+function preloadSprites() {
+  const tasks = Object.entries(assets.sprites).map(([key, src]) => (
+    new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => {
+        spriteLoadState.set(key, "loaded");
+        resolve();
+      };
+      image.onerror = () => {
+        spriteLoadState.set(key, "error");
+        console.warn(`Failed to preload sprite: ${key}`, src);
+        resolve();
+      };
+      image.src = src;
+    })
+  ));
+
+  return Promise.all(tasks);
+}
+
+const spritePreloadPromise = preloadSprites();
 
 function getLocalizedEnding(endingKey) {
   const override = localizedEndings[state.locale]?.[endingKey];
@@ -910,10 +970,12 @@ function setSprite(key, transition) {
     return;
   }
 
-  const changed = state.currentSprite !== key;
-  state.currentSprite = key;
-  ui.sprite.src = assets.sprites[key];
-  ui.sprite.dataset.expression = key;
+  const fallbackKey = "normal";
+  const nextKey = spriteLoadState.get(key) === "error" || !assets.sprites[key] ? fallbackKey : key;
+  const changed = state.currentSprite !== nextKey;
+  state.currentSprite = nextKey;
+  ui.sprite.src = assets.sprites[nextKey];
+  ui.sprite.dataset.expression = nextKey;
   ui.sprite.classList.remove("hidden");
 
   if (changed || transition === "sprite") {
@@ -1471,6 +1533,7 @@ function resetRunState() {
 
 async function startGame() {
   await unlockAudio();
+  await spritePreloadPromise;
   resetRunState();
   state.started = true;
   clearTyping();
@@ -1496,6 +1559,12 @@ updateLanguageButtons();
 renderStaticCopy();
 window.addEventListener("resize", updateViewportMetrics);
 window.visualViewport?.addEventListener("resize", updateViewportMetrics);
+ui.sprite.addEventListener("error", () => {
+  if (state.currentSprite && state.currentSprite !== "normal") {
+    spriteLoadState.set(state.currentSprite, "error");
+    setSprite("normal");
+  }
+});
 
 ui.startButton.addEventListener("click", startGame);
 ui.restartButton.addEventListener("click", restartGame);
