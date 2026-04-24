@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">第七次敲门</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <div id="background" class="background"></div>
+    <div class="background-tint"></div>
+    <div id="flash" class="flash-layer"></div>
+
+    <main id="stage" class="stage">
+      <div class="ambient-shape shape-left"></div>
+      <div class="ambient-shape shape-right"></div>
+      <img id="sprite" class="sprite hidden" alt="角色立绘">
+      <div class="menu-tools">
+        <div id="language-switcher" class="language-switcher" role="group" aria-label="语言选择 / Language">
+          <button id="language-zh" class="language-button is-active" type="button" data-lang="zh">中文</button>
+          <button id="language-en" class="language-button" type="button" data-lang="en">English</button>
+        </div>
+      </div>
+
+      <section id="title-screen" class="panel title-screen">
+        <p id="title-eyebrow" class="eyebrow">视觉小说</p>
+        <h1 id="title-heading">第七次敲门</h1>
+        <p id="title-summary" class="summary">
+          那扇门始终没有回应。
+          <br>
+          可只要站在它面前，就会想把手再一次抬起来。
+        </p>
+        <button id="start-button" class="primary-button" type="button">开始</button>
+        <p id="title-hint" class="hint">建议佩戴耳机。点击文本框或按空格、回车推进剧情。</p>
+      </section>
+
+      <section id="dialogue-ui" class="dialogue-ui hidden">
+        <div id="text-box" class="panel text-box mode-narration">
+          <div class="speaker-row">
+            <span id="speaker" class="speaker"></span>
+            <span id="mood" class="mood"></span>
+          </div>
+          <p id="dialogue-text" class="dialogue-text"></p>
+          <div id="choice-list" class="choice-list hidden"></div>
+          <div class="advance-row">
+            <span id="advance-hint" class="advance-hint">点击继续</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="ending-screen" class="panel ending-screen hidden">
+        <p id="ending-eyebrow" class="eyebrow">终幕</p>
+        <h2 id="ending-title">第七次敲门</h2>
+        <p id="ending-summary" class="summary">门已经开过一次了。</p>
+        <button id="restart-button" class="primary-button" type="button">再次敲门</button>
+      </section>
+    </main>
+  </div>
+
+  <audio id="bgm" preload="auto" loop></audio>
+
+  <script src="script.js"></script>
+</body>
+</html>
